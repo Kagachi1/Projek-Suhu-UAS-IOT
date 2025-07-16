@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Suhu & Kelembaban IoT</title>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+
+        // TODO: Replace the following with your app's Firebase configuration
+        // Ini adalah konfigurasi yang Anda dapatkan dari Firebase Console saat menambahkan aplikasi web.
+        // PASTIKAN ANDA MENGGANTI INI DENGAN KONFIGURASI PROYEK ANDA!
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCemGq1xXAR16UvovsAQR1qN_37e7PTJQ",
+            authDomain: "project-suhu-iot.firebaseapp.com",
+            databaseURL: "https://project-suhu-iot-default-rtdb.asia-southeast1.firebasedatabase.app", // Sesuaikan region jika berbeda
+            projectId: "project-suhu-iot",
+            storageBucket: "project-suhu-iot.firebasestorage.app",
+            messagingSenderId: "830624673476SENDER_ID",
+            appId: "1:830624673476:web:061203c1c7cf484879a391"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Referensi ke elemen HTML
+        const suhuElement = document.getElementById('suhu');
+        const kelembabanElement = document.getElementById('kelembaban');
+        const statusKipasElement = document.getElementById('statusKipas');
+
+        // Referensi ke data di Firebase Realtime Database
+        const tempRef = ref(database, 'sensor/temperature');
+        const humRef = ref(database, 'sensor/humidity');
+
+        // Mendengarkan perubahan data suhu
+        onValue(tempRef, (snapshot) => {
+            const temperature = snapshot.val();
+            if (temperature !== null) {
+                suhuElement.textContent = temperature.toFixed(1) + ' °C';
+                // Update status kipas berdasarkan suhu
+                if (temperature >= 30) {
+                    statusKipasElement.textContent = 'HIDUP';
+                    statusKipasElement.className = 'status-hidup';
+                } else {
+                    statusKipasElement.textContent = 'MATI';
+                    statusKipasElement.className = 'status-mati';
+                }
+            } else {
+                suhuElement.textContent = 'N/A';
+                statusKipasElement.textContent = 'N/A';
+            }
+        }, (error) => {
+            console.error("Error reading temperature: ", error);
+            suhuElement.textContent = 'Error';
+            statusKipasElement.textContent = 'Error';
+        });
+
+        // Mendengarkan perubahan data kelembaban
+        onValue(humRef, (snapshot) => {
+            const humidity = snapshot.val();
+            if (humidity !== null) {
+                kelembabanElement.textContent = humidity.toFixed(1) + ' %';
+            } else {
+                kelembabanElement.textContent = 'N/A';
+            }
+        }, (error) => {
+            console.error("Error reading humidity: ", error);
+            kelembabanElement.textContent = 'Error';
+        });
+
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50; /* Dark blue background */
+            color: #ecf0f1; /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #34495e; /* Slightly lighter dark blue */
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #1abc9c; /* Turquoise */
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .data-item {
+            margin-bottom: 25px;
+        }
+
+        .data-item label {
+            font-size: 1.2em;
+            display: block;
+            margin-bottom: 8px;
+            color: #bdc3c7; /* Light grey */
+        }
+
+        .data-item span {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ecf0f1;
+            display: block;
+        }
+
+        .status-kipas-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #2ecc71; /* Emerald green */
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.5em;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-kipas-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .status-hidup {
+            color: #e74c3c; /* Red */
+        }
+
+        .status-mati {
+            color: #27ae60; /* Green */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .data-item span {
+                font-size: 2em;
+            }
+            .status-kipas-section {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monitoring Lingkungan IoT</h1>
+
+        <div class="data-item">
+            <label>Suhu Saat Ini:</label>
+            <span id="suhu">Memuat...</span>
+        </div>
+
+        <div class="data-item">
+            <label>Kelembaban Saat Ini:</label>
+            <span id="kelembaban">Memuat...</span>
+        </div>
+
+        <div class="status-kipas-section">
+            <label>Status Kipas:</label>
+            <span id="statusKipas">Memuat...</span>
+        </div>
+    </div>
+</body>
+</html>
